@@ -1,6 +1,13 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type ClaudeBridgePlugin from "./main";
 
+/**
+ * Settings tab UI.
+ *
+ * Every `.onChange` callback saves immediately — this is the standard Obsidian
+ * convention so settings persist even if the user closes the tab without an
+ * explicit "Save" action.
+ */
 export class ClaudeBridgeSettingTab extends PluginSettingTab {
 	plugin: ClaudeBridgePlugin;
 
@@ -19,19 +26,15 @@ export class ClaudeBridgeSettingTab extends PluginSettingTab {
 				"Log verbose trace output to the DevTools console (Cmd+Option+I). Errors always log regardless of this setting.",
 			)
 			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.debugMode)
-					.onChange(async (value) => {
-						this.plugin.settings.debugMode = value;
-						await this.plugin.saveSettings();
-					}),
+				toggle.setValue(this.plugin.settings.debugMode).onChange(async (value) => {
+					this.plugin.settings.debugMode = value;
+					await this.plugin.saveSettings();
+				}),
 			);
 
 		new Setting(containerEl)
 			.setName("Claude CLI path")
-			.setDesc(
-				"Absolute path to the claude binary. Auto-detected on load if left empty.",
-			)
+			.setDesc("Absolute path to the claude binary. Auto-detected on load if left empty.")
 			.addText((text) =>
 				text
 					.setPlaceholder("/Users/you/.local/bin/claude")

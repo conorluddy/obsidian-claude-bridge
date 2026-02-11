@@ -1,5 +1,4 @@
 import { Editor, MarkdownView, Notice, TFile } from "obsidian";
-import { z } from "zod";
 import { callClaude } from "../claude-service";
 import { SessionManager } from "../session-manager";
 import type { Logger } from "../logger";
@@ -32,10 +31,10 @@ export abstract class BaseCommand<T = string> {
 		protected logger: Logger,
 	) {}
 
-	/** Build the prompt from the current editor context */
+	/** Build the prompt from the current editor context. */
 	abstract buildPrompt(context: CommandContext): string;
 
-	/** Optional: provide a Zod + JSON Schema for structured output */
+	/** Optional: provide a Zod + JSON Schema for structured output. */
 	getSchema(): CommandSchema<T> | null {
 		return null;
 	}
@@ -43,14 +42,15 @@ export abstract class BaseCommand<T = string> {
 	/** Render the result back into the editor. Default: replace selection. */
 	render(editor: Editor, result: CommandResult<T>): void {
 		const text =
-			typeof result.output === "string"
-				? result.output
-				: JSON.stringify(result.output, null, 2);
+			typeof result.output === "string" ? result.output : JSON.stringify(result.output, null, 2);
 		editor.replaceSelection(text);
 	}
 
 	/**
 	 * Execute the full command lifecycle.
+	 *
+	 * Flow: gather context → build prompt → call CLI → validate schema
+	 * (if provided) → render into editor → persist session ID.
 	 */
 	async execute(editor: Editor, view: MarkdownView): Promise<void> {
 		const file = view.file;
@@ -98,15 +98,10 @@ export abstract class BaseCommand<T = string> {
 				this.settings.cliPath || undefined,
 			);
 
-			// Persist session
 			if (response.sessionId) {
-				await this.sessionManager.setSessionId(
-					file,
-					response.sessionId,
-				);
+				await this.sessionManager.setSessionId(file, response.sessionId);
 			}
 
-			// Parse + validate
 			let output: T;
 			if (schema) {
 				const parsed = JSON.parse(response.text);
@@ -114,7 +109,9 @@ export abstract class BaseCommand<T = string> {
 				this.logger.info(
 					"schema",
 					"Validation passed",
-					typeof output === "object" ? Object.keys(output as Record<string, unknown>) : typeof output,
+					typeof output === "object"
+						? Object.keys(output as Record<string, unknown>)
+						: typeof output,
 				);
 			} else {
 				output = response.text as unknown as T;
@@ -124,14 +121,13 @@ export abstract class BaseCommand<T = string> {
 			this.logger.info("command", `"${this.id}" complete`);
 			new Notice(`${this.name} complete`);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Unknown error";
+			const message = err instanceof Error ? err.message : "Unknown error";
 			this.logger.error("command", `"${this.id}" failed:`, err);
 			new Notice(`Claude Bridge error: ${message}`);
 		}
 	}
 
-	/** Override to return false if the command works on the full note */
+	/** Override to return false if the command works on the full note. */
 	protected requiresSelection(): boolean {
 		return true;
 	}

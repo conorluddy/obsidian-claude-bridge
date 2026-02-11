@@ -1,30 +1,31 @@
 import { Editor } from "obsidian";
 import { TextResponseSchema } from "../schemas";
 import type { Logger } from "../logger";
-import type {
-	ClaudeBridgeSettings,
-	CommandContext,
-	CommandResult,
-	CommandSchema,
-} from "../types";
+import type { ClaudeBridgeSettings, CommandContext, CommandResult, CommandSchema } from "../types";
 import { SessionManager } from "../session-manager";
 import { BaseCommand } from "./base-command";
 
 /**
- * Proof-of-concept command: "Expand selection with Claude"
+ * Example command: "Expand selection with Claude"
  *
- * Takes the selected text, asks Claude to expand/improve it,
- * and replaces the selection with the result.
+ * This is a reference implementation showing the three extension points
+ * every command must (or may) provide:
+ *
+ * 1. **`getSchema()`** — Return a Zod + JSON Schema pair for structured
+ *    output. Omit to receive raw text instead.
+ * 2. **`buildPrompt(context)`** — Construct the prompt from the editor
+ *    context (selection, full note, file path, cursor position).
+ * 3. **`render(editor, result)`** — Write the validated result back into
+ *    the editor. Default replaces the selection with stringified output.
+ *
+ * To add your own command, copy this file, change the schema/prompt/render,
+ * and register it in `main.ts`.
  */
 export class ExpandCommand extends BaseCommand<{ text: string }> {
 	readonly id = "claude-bridge-expand";
 	readonly name = "Expand selection with Claude";
 
-	constructor(
-		sessionManager: SessionManager,
-		settings: ClaudeBridgeSettings,
-		logger: Logger,
-	) {
+	constructor(sessionManager: SessionManager, settings: ClaudeBridgeSettings, logger: Logger) {
 		super(sessionManager, settings, logger);
 	}
 
@@ -44,10 +45,7 @@ export class ExpandCommand extends BaseCommand<{ text: string }> {
 		].join("\n");
 	}
 
-	render(
-		editor: Editor,
-		result: CommandResult<{ text: string }>,
-	): void {
+	render(editor: Editor, result: CommandResult<{ text: string }>): void {
 		editor.replaceSelection(result.output.text);
 	}
 }

@@ -1,9 +1,4 @@
-export type LogCategory =
-	| "plugin"
-	| "command"
-	| "service"
-	| "session"
-	| "schema";
+export type LogCategory = "plugin" | "command" | "service" | "session" | "schema";
 
 const PREFIX = "claude-bridge";
 
