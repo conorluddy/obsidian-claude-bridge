@@ -1,0 +1,9 @@
+{
+	"id": "claude-bridge",
+	"name": "Claude Bridge",
+	"version": "0.1.0",
+	"minAppVersion": "1.4.0",
+	"description": "Two-way communication bridge between Obsidian and Claude CLI. Provides session management, schema validation, and a base command pattern for AI-powered plugins.",
+	"author": "Conor Luddy",
+	"isDesktopOnly": true
+}
