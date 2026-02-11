@@ -2,6 +2,8 @@
 
 An Obsidian plugin that bridges your vault with the [Claude CLI](https://docs.anthropic.com/en/docs/claude-code). Select text, run a command, and Claude processes it — with structured output validation, per-note session continuity, and a base command pattern you can extend.
 
+https://github.com/user-attachments/assets/50eb8bb9-82b3-48c2-8b15-d2121a6511ad
+
 ## Installation
 
 1. Clone into your vault's plugin directory:
